@@ -1,9 +1,10 @@
 name: buildx
 
-# on:
-#   create:
-#     tags:
-#       - v*
+on:
+  create:
+    tags:
+      - v*
+  push:
 
 jobs:
   buildx:
