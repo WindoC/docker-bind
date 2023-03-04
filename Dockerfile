@@ -14,7 +14,7 @@ ENV BIND_USER=bind \
 
 COPY --from=add-apt-repositories /etc/apt/trusted.gpg /etc/apt/trusted.gpg
 COPY --from=add-apt-repositories /etc/apt/sources.list /etc/apt/sources.list
-COPY entrypoint.sh /entrypoint.sh
+COPY rootfs/ /
 
 RUN rm -rf /etc/apt/apt.conf.d/docker-gzip-indexes \
  && apt-get update \
@@ -23,7 +23,7 @@ RUN rm -rf /etc/apt/apt.conf.d/docker-gzip-indexes \
       webmin=${WEBMIN_VERSION}* \
       cron systemd \
  && rm -rf /var/lib/apt/lists/* \
- && chmod 755 /entrypoint.sh
+ && chmod 755 /entrypoint.sh /usr/bin/systemctl
 
 EXPOSE 53/udp 53/tcp 10000/tcp
 
