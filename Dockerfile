@@ -21,7 +21,7 @@ RUN rm -rf /etc/apt/apt.conf.d/docker-gzip-indexes \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
       bind9=1:${BIND_VERSION}* bind9-host=1:${BIND_VERSION}* dnsutils \
       webmin=${WEBMIN_VERSION}* \
-      cron \
+      cron systemd \
  && rm -rf /var/lib/apt/lists/* \
  && chmod 755 /entrypoint.sh
 
