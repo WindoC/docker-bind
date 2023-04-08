@@ -10,7 +10,7 @@ FROM ubuntu:20.04
 ENV BIND_USER=bind \
     BIND_VERSION=9.16.1 \
     DNSMASQ_VERSION=2.80-1 \
-    WEBMIN_VERSION=2.013 \
+    WEBMIN_VERSION=2.021 \
     DATA_DIR=/data
 
 COPY --from=add-apt-repositories /etc/apt/trusted.gpg /etc/apt/trusted.gpg
