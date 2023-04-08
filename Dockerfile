@@ -9,6 +9,7 @@ FROM ubuntu:20.04
 
 ENV BIND_USER=bind \
     BIND_VERSION=9.16.1 \
+    DNSMASQ_VERSION=2.80-1 \
     WEBMIN_VERSION=2.013 \
     DATA_DIR=/data
 
@@ -20,6 +21,7 @@ RUN rm -rf /etc/apt/apt.conf.d/docker-gzip-indexes \
  && apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
       bind9=1:${BIND_VERSION}* bind9-host=1:${BIND_VERSION}* dnsutils \
+      dnsmasq=${DNSMASQ_VERSION}* \
       webmin=${WEBMIN_VERSION}* \
       cron \
  && rm -rf /var/lib/apt/lists/* \
