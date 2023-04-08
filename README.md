@@ -20,10 +20,10 @@ Most of the setting should be same.
 * `DNSMASQ_ENABLED`: To enable dnsmasq. Defaults is `false`. Also, you have to change the port map if enable dnsmasq
 ```
 # replace
--p 53:53/tcp --ph 53:53/udp
+-p 53:53/tcp -p 53:53/udp
 
 # to
--p 53:10053/tcp --ph 53:10053/udp
+-p 53:10053/tcp -p 53:10053/udp
 
 ```
 

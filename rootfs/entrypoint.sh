@@ -126,8 +126,7 @@ first_init() {
 
 _term() {
   
-  kill -TERM "$child_dnsmasq" 2>/dev/null
-  pkill dnsmasq
+  /etc/init.d/dnsmasq stop
 
   /etc/init.d/webmin stop
   echo save the crontab before exit.
@@ -173,8 +172,7 @@ if [[ -z ${1} ]]; then
   if [ "${DNSMASQ_ENABLED}" == "true" ]; then
     create_dnsmasq_data_dir
     echo "Starting dnsmasq..."
-    /usr/sbin/dnsmasq -d &
-    child_dnsmasq=$!
+    /etc/init.d/dnsmasq start
   fi
 
   echo "Starting named..."
