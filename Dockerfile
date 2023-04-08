@@ -9,21 +9,24 @@ FROM ubuntu:20.04
 
 ENV BIND_USER=bind \
     BIND_VERSION=9.16.1 \
-    WEBMIN_VERSION=2.013 \
+    DNSMASQ_VERSION=2.80-1 \
+    WEBMIN_VERSION=2.021 \
     DATA_DIR=/data
 
 COPY --from=add-apt-repositories /etc/apt/trusted.gpg /etc/apt/trusted.gpg
 COPY --from=add-apt-repositories /etc/apt/sources.list /etc/apt/sources.list
-COPY rootfs/ /
 
-RUN rm -rf /etc/apt/apt.conf.d/docker-gzip-indexes \
- && apt-get update \
+RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
       bind9=1:${BIND_VERSION}* bind9-host=1:${BIND_VERSION}* dnsutils \
+      dnsmasq=${DNSMASQ_VERSION}* \
       webmin=${WEBMIN_VERSION}* \
       cron \
- && rm -rf /var/lib/apt/lists/* \
- && chmod 755 /entrypoint.sh /usr/bin/systemctl
+ && rm -rf /var/lib/apt/lists/*
+
+COPY rootfs/ /
+
+RUN chmod 755 /entrypoint.sh /usr/bin/systemctl
 
 EXPOSE 53/udp 53/tcp 10000/tcp
 
