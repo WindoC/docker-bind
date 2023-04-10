@@ -125,16 +125,21 @@ first_init() {
 }
 
 _term() {
-  
-  /etc/init.d/dnsmasq stop
+
+  #/etc/init.d/dnsmasq stop
+  echo kill process dnsmasq \($child_dnsmasq\)
+  kill -TERM $child_dnsmasq
+  pkill dnsmasq
 
   /etc/init.d/webmin stop
   echo save the crontab before exit.
   crontab -l > /data/crontab
+  echo stop service cron
   /etc/init.d/cron stop
 
-  kill -TERM "$child_bind" 2>/dev/null
-  pkill named  
+  echo kill process named \($child_bind\)
+  kill -TERM $child_bind
+  pkill named
 
 }
 
@@ -172,15 +177,17 @@ if [[ -z ${1} ]]; then
   if [ "${DNSMASQ_ENABLED}" == "true" ]; then
     create_dnsmasq_data_dir
     echo "Starting dnsmasq..."
-    /etc/init.d/dnsmasq start
+    #/etc/init.d/dnsmasq start
+    while [ 1 ] ; do /usr/sbin/dnsmasq -d ; done &
+    child_dnsmasq=$!
   fi
 
   echo "Starting named..."
   #exec "$(command -v named)" -u ${BIND_USER} -g ${EXTRA_ARGS}
   if [ "${BIND_LOG_STDERR:-true}" == "true" ]; then
-    "$(command -v named)" -u ${BIND_USER} -g ${EXTRA_ARGS} &
+    while [ 1 ] ; do "$(command -v named)" -u ${BIND_USER} -g ${EXTRA_ARGS} ; done &
   else
-    "$(command -v named)" -u ${BIND_USER} -f ${EXTRA_ARGS} &
+    while [ 1 ] ; do "$(command -v named)" -u ${BIND_USER} -f ${EXTRA_ARGS} ; done &
   fi
   child_bind=$!
   wait "$child_bind"
