@@ -7,7 +7,7 @@ volumes:
 services:
   
   bind:
-    image: windoac/bind-webmin
+    image: windoac/bind
     #hostname: "{{.Node.Hostname}}"
     volumes:
       - data:/data
