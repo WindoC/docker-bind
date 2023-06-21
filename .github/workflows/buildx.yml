@@ -22,6 +22,7 @@ jobs:
 
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
+            VERSION=$(echo $VERSION | sed 's/^v//g')
           fi
 
           TAGS="--tag ${DOCKER_IMAGE}:${VERSION}"
