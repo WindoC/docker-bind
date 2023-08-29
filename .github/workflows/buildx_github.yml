@@ -11,12 +11,12 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       -
         name: Prepare
         id: prepare
         run: |
-          DOCKER_IMAGE=windoac/bind
+          DOCKER_IMAGE=ghcr.io/windoc/docker-bind
           DOCKER_PLATFORMS=linux/amd64,linux/arm/v7,linux/arm64/v8
           VERSION=edge
 
@@ -30,37 +30,34 @@ jobs:
             TAGS="$TAGS --tag ${DOCKER_IMAGE}:latest"
           fi
 
-          echo ::set-output name=docker_image::${DOCKER_IMAGE}
-          echo ::set-output name=version::${VERSION}
-          echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
-            --build-arg VERSION=${VERSION} \
-            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
-            --build-arg VCS_REF=${GITHUB_SHA::8} \
-            ${TAGS} --file ./Dockerfile .
+          echo "docker_image=${DOCKER_IMAGE}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "buildx_args=--platform ${DOCKER_PLATFORMS} --build-arg VERSION=${VERSION} --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') --build-arg VCS_REF=${GITHUB_SHA::8} ${TAGS} --file ./Dockerfile ." >> $GITHUB_OUTPUT
       # https://github.com/docker/setup-qemu-action
       - 
         name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
       # https://github.com/docker/setup-buildx-action
       - 
         name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-        with:
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+        uses: docker/setup-buildx-action@v2
+        # with:
+        #   cache-from: type=gha
+        #   cache-to: type=gha,mode=max
       -
         name: Docker Buildx (build)
         run: |
           docker buildx build --output "type=image,push=false" ${{ steps.prepare.outputs.buildx_args }}
       -
-        name: Login to DockerHub
+        name: Login to ghcr.io
         if: success() && github.event_name != 'pull_request'
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       -
-        name: Docker Buildx (push)
+        name: Docker Buildx (push to ghcr.io)
         if: success() && github.event_name != 'pull_request'
         run: |
           docker buildx build --output "type=image,push=true" ${{ steps.prepare.outputs.buildx_args }}
