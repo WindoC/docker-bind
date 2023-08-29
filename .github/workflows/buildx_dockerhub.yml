@@ -1,4 +1,4 @@
-name: buildx
+name: buildx_dockerhub
 
 on:
   create:
