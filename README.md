@@ -46,7 +46,7 @@ docker pull windoac/bind:latest
 Alternatively you can build the image yourself.
 
 ```bash
-docker build -t bind github.com/WindoC/docker-bind
+docker build -t bind docker-bind
 ```
 
 ## Quickstart
