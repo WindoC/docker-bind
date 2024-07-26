@@ -31,11 +31,8 @@ WEBMIN_INIT_SSL_ENABLED=${WEBMIN_INIT_SSL_ENABLED:-true}
 WEBMIN_INIT_REDIRECT_PORT=${WEBMIN_INIT_REDIRECT_PORT:-10000}
 WEBMIN_INIT_REFERERS=${WEBMIN_INIT_REFERERS:-NONE}
 
-DNSMASQ_ENABLED=${DNSMASQ_ENABLED:-false}
-
 BIND_DATA_DIR=${DATA_DIR}/bind
 WEBMIN_DATA_DIR=${DATA_DIR}/webmin
-DNSMASQ_DATA_DIR=${DATA_DIR}/dnsmasq
 
 create_bind_data_dir() {
   mkdir -p ${BIND_DATA_DIR}
@@ -70,19 +67,6 @@ create_webmin_data_dir() {
   ln -sf ${WEBMIN_DATA_DIR}/etc /etc/webmin
 }
 
-create_dnsmasq_data_dir() {
-  mkdir -p ${DNSMASQ_DATA_DIR}
-
-  # populate default bind configuration if it does not exist
-  if [ ! -d ${DNSMASQ_DATA_DIR}/dnsmasq.d ]; then
-    mv /etc/dnsmasq.d ${DNSMASQ_DATA_DIR}/dnsmasq.d
-  fi
-  rm -rf /etc/dnsmasq.d
-  ln -sf ${DNSMASQ_DATA_DIR}/dnsmasq.d /etc/dnsmasq.d
-  chmod -R 0775 ${DNSMASQ_DATA_DIR}
-  chown -R root:${BIND_USER} ${DNSMASQ_DATA_DIR}
-}
-
 disable_webmin_ssl() {
   sed -i 's/ssl=1/ssl=0/g' /etc/webmin/miniserv.conf
 }
@@ -97,6 +81,7 @@ set_webmin_referers() {
 
 set_root_passwd() {
   echo "root:$ROOT_PASSWORD" | chpasswd
+  #/usr/share/webmin/changepass.pl /etc/webmin root $ROOT_PASSWORD
 }
 
 create_pid_dir() {
@@ -109,6 +94,9 @@ create_bind_cache_dir() {
   mkdir -p /var/cache/bind
   chmod 0775 /var/cache/bind
   chown root:${BIND_USER} /var/cache/bind
+
+  # map the debug log to /dev/null
+  ln -sf /dev/null /var/cache/bind/named.run
 }
 
 first_init() {
@@ -125,22 +113,9 @@ first_init() {
 }
 
 _term() {
-
-  #/etc/init.d/dnsmasq stop
-  echo kill process dnsmasq \($child_dnsmasq\)
-  kill -TERM $child_dnsmasq
-  pkill dnsmasq
-
-  /etc/init.d/webmin stop
+  kill -TERM "$child" 2>/dev/null
   echo save the crontab before exit.
   crontab -l > /data/crontab
-  echo stop service cron
-  /etc/init.d/cron stop
-
-  echo kill process named \($child_bind\)
-  kill -TERM $child_bind
-  pkill named
-
 }
 
 create_pid_dir
@@ -171,26 +146,19 @@ if [[ -z ${1} ]]; then
   if [ -f /data/crontab ]; then
     crontab /data/crontab
   fi
-  echo "Starting cron..."
   /etc/init.d/cron start
-
-  if [ "${DNSMASQ_ENABLED}" == "true" ]; then
-    create_dnsmasq_data_dir
-    echo "Starting dnsmasq..."
-    #/etc/init.d/dnsmasq start
-    while [ 1 ] ; do /usr/sbin/dnsmasq -d ; done &
-    child_dnsmasq=$!
-  fi
 
   echo "Starting named..."
   #exec "$(command -v named)" -u ${BIND_USER} -g ${EXTRA_ARGS}
   if [ "${BIND_LOG_STDERR:-true}" == "true" ]; then
-    while [ 1 ] ; do "$(command -v named)" -u ${BIND_USER} -g ${EXTRA_ARGS} ; done &
+    "$(command -v named)" -u ${BIND_USER} -g ${EXTRA_ARGS} &
   else
-    while [ 1 ] ; do "$(command -v named)" -u ${BIND_USER} -f ${EXTRA_ARGS} ; done &
+    "$(command -v named)" -u ${BIND_USER} -f ${EXTRA_ARGS} &
   fi
-  child_bind=$!
-  wait "$child_bind"
+  
+  child=$!
+  
+  wait "$child"
   
 else
   exec "$@"
