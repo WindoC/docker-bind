@@ -1,32 +1,27 @@
-FROM ubuntu:20.04 AS add-apt-repositories
-
-RUN apt-get update \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y curl gnupg \
- && curl -sSL http://www.webmin.com/jcameron-key.asc | apt-key add \
- && echo "deb http://download.webmin.com/download/repository sarge contrib" >> /etc/apt/sources.list
-
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 ENV BIND_USER=bind \
-    BIND_VERSION=9.16.1 \
-    DNSMASQ_VERSION=2.80-1 \
-    WEBMIN_VERSION=2.102 \
+    BIND_VERSION=9.18.28 \
+    WEBMIN_VERSION=2.201 \
     DATA_DIR=/data
 
-COPY --from=add-apt-repositories /etc/apt/trusted.gpg /etc/apt/trusted.gpg
-COPY --from=add-apt-repositories /etc/apt/sources.list /etc/apt/sources.list
-
+# install common package
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-      bind9=1:${BIND_VERSION}* bind9-host=1:${BIND_VERSION}* dnsutils \
-      dnsmasq=${DNSMASQ_VERSION}* \
-      webmin=${WEBMIN_VERSION}* \
-      cron \
- && rm -rf /var/lib/apt/lists/*
+      bind9=1:${BIND_VERSION}* bind9-host=1:${BIND_VERSION}* \
+      dnsutils \
+      cron
+
+# install webmin package
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y curl \
+ && curl -o setup-repos.sh https://raw.githubusercontent.com/webmin/webmin/master/setup-repos.sh \
+ && sh setup-repos.sh -f \
+ && DEBIAN_FRONTEND=noninteractive apt-get install --install-recommends -y webmin=${WEBMIN_VERSION}*
 
 COPY rootfs/ /
 
-RUN chmod 755 /entrypoint.sh /usr/bin/systemctl
+RUN rm -rf /var/lib/apt/lists/* \
+ && chmod 755 /entrypoint.sh /usr/bin/systemctl
 
 EXPOSE 53/udp 53/tcp 10000/tcp
 
