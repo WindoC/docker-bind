@@ -34,6 +34,9 @@ Alternatively you can build the image yourself.
 
 ```bash
 docker build -t docker-bind .
+
+# test run
+docker run -it --rm docker-bind
 ```
 
 ## Quickstart
@@ -132,3 +135,17 @@ For debugging and maintenance purposes you may want access the containers shell.
 ```bash
 docker exec -it bind bash
 ```
+
+## check if there are new verion
+
+### bind9
+
+```
+docker run -it --rm ubuntu:24.04 bash
+apt update
+apt search bind9
+```
+
+### webmin
+
+Access webmin page to check. https://webmin.com/
