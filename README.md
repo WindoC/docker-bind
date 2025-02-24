@@ -36,7 +36,7 @@ Alternatively you can build the image yourself.
 docker build -t docker-bind .
 
 # test run
-docker run -it --rm docker-bind
+docker run -it --rm -p 10000:10000 -p 53:53 -p 53:53/udp docker-bind
 ```
 
 ## Quickstart

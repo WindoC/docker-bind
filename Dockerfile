@@ -2,7 +2,7 @@ FROM ubuntu:24.04
 
 ENV BIND_USER=bind \
     BIND_VERSION=9.18.30 \
-    WEBMIN_VERSION=2.202 \
+    WEBMIN_VERSION=2.301 \
     DATA_DIR=/data
 
 # install common package
